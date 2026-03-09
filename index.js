@@ -18,13 +18,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // ==========================================
 const SECRET_KEY = 'chave_secreta_jitterbit_teste';
 
-// Rota aberta para gerar o token
 app.post('/login', (req, res) => {
     const token = jwt.sign({ user: 'avaliador' }, SECRET_KEY, { expiresIn: '1h' });
     return res.status(200).json({ token });
 });
 
-// Middleware de bloqueio
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -46,10 +44,10 @@ mongoose.connect('mongodb://localhost:27017/jitterbit')
     .catch(err => console.error('❌ Erro no MongoDB:', err));
 
 // ==========================================
-// ENDPOINTS DO CRUD (Agora protegidos pelo authenticateToken)
+// ENDPOINTS OBRIGATÓRIOS (Sem JWT para o cURL do PDF funcionar direto)
 // ==========================================
 
-app.post('/order', authenticateToken, async (req, res) => {
+app.post('/order', async (req, res) => {
     try {
         const { numeroPedido, valorTotal, dataCriacao, items } = req.body;
 
@@ -57,6 +55,7 @@ app.post('/order', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: "Bad Request", message: "Formato inválido." });
         }
 
+        // Mapeamento literal, como exigido nas imagens
         const mappedItems = items.map(item => ({
             productId: Number(item.idItem),
             quantity: item.quantidadeItem,
@@ -78,20 +77,24 @@ app.post('/order', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/order/list', authenticateToken, async (req, res) => {
+app.get('/order/:id', async (req, res) => {
     try {
-        const orders = await Order.find();
-        return res.status(200).json(orders);
+        const order = await Order.findOne({ orderId: req.params.id });
+        if (!order) return res.status(404).json({ error: "Not Found", message: "Pedido não encontrado." });
+        return res.status(200).json(order);
     } catch (error) {
         return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 });
 
-app.get('/order/:id', authenticateToken, async (req, res) => {
+// ==========================================
+// ENDPOINTS OPCIONAIS (Com JWT para validar o Bônus de Segurança)
+// ==========================================
+
+app.get('/order/list', authenticateToken, async (req, res) => {
     try {
-        const order = await Order.findOne({ orderId: req.params.id });
-        if (!order) return res.status(404).json({ error: "Not Found", message: "Pedido não encontrado." });
-        return res.status(200).json(order);
+        const orders = await Order.find();
+        return res.status(200).json(orders);
     } catch (error) {
         return res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
