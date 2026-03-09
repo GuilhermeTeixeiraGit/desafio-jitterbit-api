@@ -1,0 +1,81 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API de Pedidos - Jitterbit",
+    "version": "1.0.0",
+    "description": "API REST para gerenciamento de pedidos com Data Mapping e Autenticação JWT."
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/login": {
+      "post": {
+        "summary": "Gera o Token JWT de teste",
+        "security": [],
+        "responses": {
+          "200": { "description": "Token gerado com sucesso" }
+        }
+      }
+    },
+    "/order": {
+      "post": {
+        "summary": "Cria um novo pedido",
+        "responses": {
+          "201": { "description": "Pedido criado" },
+          "400": { "description": "JSON inválido" },
+          "409": { "description": "Pedido já existe" }
+        }
+      }
+    },
+    "/order/list": {
+      "get": {
+        "summary": "Lista todos os pedidos",
+        "responses": {
+          "200": { "description": "Lista retornada com sucesso" }
+        }
+      }
+    },
+    "/order/{id}": {
+      "get": {
+        "summary": "Busca um pedido pelo ID",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Pedido encontrado" },
+          "404": { "description": "Pedido não encontrado" }
+        }
+      },
+      "put": {
+        "summary": "Atualiza um pedido pelo ID",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Pedido atualizado" }
+        }
+      },
+      "delete": {
+        "summary": "Deleta um pedido pelo ID",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Pedido deletado" }
+        }
+      }
+    }
+  }
+}
